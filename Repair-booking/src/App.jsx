@@ -1,5 +1,6 @@
 
 import { MapPin, Car, Wrench, AlertCircle, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import React, { useState} from 'react';
 
 function App() {
@@ -101,7 +102,7 @@ function App() {
 
   return (
     <div className="min-h-screen mx-2 sm:mx-6 md:mx-16 lg:mx-32 xl:mx-60 my-4">
-      <h1 className="font-bold text-2xl">Repair Booking</h1>
+      <h1 className="font-bold text-2xl text-blue-600 ">Repair Booking</h1>
       
       {/* Status messages */}
       {error && (
@@ -181,10 +182,10 @@ function App() {
         </select>
       </div>
 
-        {/* Conditional Rendering to show the stations when the user picks a repair service*/}
+        {/* Conditional Rendering to show the stations when the user picks a repair  and car type*/}
         
         {
-        repairService !== 'none' && (
+        repairService !== 'none' && carType !== 'none'  ? (
         <>
          {/* Nearby stations */}
       <div className="mt-2 flex flex-col gap-1">
@@ -219,7 +220,14 @@ function App() {
 
       {/* Time slot selection */}
       {selectedStation !== null && (
-        <div className="mt-2 flex flex-col gap-1">
+
+        <motion.div
+         className="mt-2 flex flex-col gap-1"
+         initial={{ opacity: 0, y: -20 }}
+         animate={{ opacity: 1, y: 0 }}
+         exit={{ opacity: 0, y: -20 }}
+         transition={{ duration: 0.3 }}
+         >
           <h1 className="font-medium">Select a time slot</h1>
           <div className="grid grid-cols-2 gap-2">
             {nearbyStations[selectedStation].timeSlots.map((slot, index) => (
@@ -244,12 +252,16 @@ function App() {
               </button>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
       
       
     </>
-    )}
+    )
+  
+    : (null)}
+
+    {/* Additional notes */}
     <div className="mt-2 flex flex-col gap-1">
         <h1 className="font-medium">Additional notes</h1>
         <textarea
