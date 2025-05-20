@@ -2,7 +2,8 @@ import { MapPin, Car, Wrench, AlertCircle, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import React, { useState } from 'react';
 import { setupWorker } from 'msw/browser';
-import { handlers, stations } from './Handler.js'; 
+import { handlers, repairServices } from './Handler.js';
+import toast, { Toaster } from 'react-hot-toast';
 
 export const worker = setupWorker(...handlers);
 
@@ -10,55 +11,72 @@ function App() {
   // State variables for car type, repair service, and selected station
   const [carType, setCarType] = useState('none');
   const [repairService, setRepairService] = useState('none');
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+  const [notes, setNotes] = useState('');
 
   // State variables for error and success messages
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // State variables for selected station and time slot and notes
-  const [selectedStation, setSelectedStation] = useState(null);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
-  const [notes, setNotes] = useState('');
+  // Find the selected service based on repairService ID
+  const selectedService = repairServices.find(
+    (service) => service.id === parseInt(repairService)
+  );
 
   const handleSubmit = () => {
     // Clear previous messages
     setError(null);
     setSuccess(null);
-    
+
     // Validation
-    if (carType === 'none' || repairService === 'none' || selectedStation === null || selectedTimeSlot === null) {
+    if (
+      carType === 'none' ||
+      repairService === 'none' ||
+      selectedStation === null ||
+      selectedTimeSlot === null
+    ) {
       setError('Please fill in all required fields');
+      toast.error('Please fill in all required fields');
       return;
     }
-    
+
     // All validations passed
     setSuccess('Appointment booked successfully!');
+    toast.success('Appointment booked successfully!');
   };
 
   return (
     <div className="min-h-screen mx-2 sm:mx-6 md:mx-16 lg:mx-32 xl:mx-60 my-4">
+      <Toaster position="top-right" />
       <h1 className="font-bold text-2xl text-blue-600">Repair Booking</h1>
-      
+
       {/* Status messages */}
       {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 my-4" role="alert">
+        <div
+          className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 my-4"
+          role="alert"
+        >
           <div className="flex items-center">
             <AlertCircle className="mr-2" size={20} />
             <p>{error}</p>
           </div>
         </div>
       )}
-      
+
       {/* Success message */}
       {success && (
-        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 my-4" role="alert">
+        <div
+          className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 my-4"
+          role="alert"
+        >
           <div className="flex items-center">
             <CheckCircle className="mr-2" size={20} />
             <p>{success}</p>
           </div>
         </div>
       )}
-      
+
       <div className="flex flex-col mt-4 gap-4">
         {/* Car type selection */}
         <div className="flex flex-col gap-1">
@@ -74,7 +92,9 @@ function App() {
             value={carType}
             onChange={(e) => setCarType(e.target.value)}
           >
-            <option value="none" disabled>Select a car type</option>
+            <option value="none" disabled>
+              Select a car type
+            </option>
             <option value="sedan">Sedan</option>
             <option value="suv">SUV</option>
             <option value="truck">Truck</option>
@@ -102,95 +122,108 @@ function App() {
             name="repairService"
             id="repairService"
             value={repairService}
-            onChange={(e) => setRepairService(e.target.value)}
+            onChange={(e) => {
+              setRepairService(e.target.value);
+              setSelectedStation(null); // Reset station when service changes
+              setSelectedTimeSlot(null); // Reset time slot when service changes
+            }}
           >
-            <option value="none" disabled>Select a repair service</option>
-            <option value="oilChange">Oil Change</option>
-            <option value="tireRotation">Tire Rotation</option>
-            <option value="brakeInspection">Brake Inspection</option>
-            <option value="batteryReplacement">Battery Replacement</option>
-            <option value="engineTuneUp">Engine Tune-Up</option>
-            <option value="transmissionRepair">Transmission Repair</option>
-            <option value="suspensionRepair">Suspension Repair</option>
-            <option value="exhaustRepair">Exhaust Repair</option>
+            <option value="none" disabled>
+              Select a repair service
+            </option>
+            {repairServices.map((service) => (
+              <option key={service.id} value={service.id}>
+                {service.name}
+              </option>
+            ))}
           </select>
         </div>
 
         {/* Conditional Rendering to show the stations when the user picks a repair and car type */}
-        {repairService !== 'none' && carType !== 'none' ? (
+        {repairService !== 'none' && carType !== 'none' && selectedService ? (
           <>
             {/* Nearby stations */}
             <motion.div
-             className="mt-2 flex flex-col gap-1"
-             initial={{ opacity: 0, y: -20 }}
+              className="mt-2 flex flex-col gap-1"
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-             >
+            >
               <h1 className="font-medium">Nearby stations</h1>
-              {stations.map((station, index) => (
-                <button
-                  type="button"
-                  key={index}
-                  className={`bg-gray-100 flex gap-2 items-center p-2 rounded-md border-2 transition-colors ${
-                    selectedStation === index
-                      ? 'border-blue-600 ring-2 ring-blue-200'
-                      : 'border-transparent'
-                  }`}
-                  onClick={() => setSelectedStation(index)}
-                >
-                  <div className="w-10 h-10 bg-gray-300 rounded flex items-center justify-center">
-                    <MapPin className="text-blue-600" />
-                  </div>
-                  <div className="flex flex-col text-left">
-                    <h2 className="font-medium">{station.name}</h2>
-                    <div className="flex gap-1">
-                      <p className="text-gray-500">{station.distance}</p>
-                      <p className="text-gray-500">|</p>
-                      <p className="text-gray-500">
-                        {station.star} <span className="text-yellow-500">★</span>
-                      </p>
+              {selectedService.stations.length > 0 ? (
+                selectedService.stations.map((station, index) => (
+                  <button
+                    type="button"
+                    key={index}
+                    className={`bg-gray-100 flex gap-2 items-center p-2 rounded-md border-2 transition-colors ${
+                      selectedStation === index
+                        ? 'border-blue-600 ring-2 ring-blue-200'
+                        : 'border-transparent'
+                    }`}
+                    onClick={() => {
+                      setSelectedStation(index);
+                      setSelectedTimeSlot(null); // Reset time slot when station changes
+                    }}
+                  >
+                    <div className="w-10 h-10 bg-gray-300 rounded flex items-center justify-center">
+                      <MapPin className="text-blue-600" />
                     </div>
-                  </div>
-                </button>
-              ))}
+                    <div className="flex flex-col text-left">
+                      <h2 className="font-medium">{station.name}</h2>
+                      <div className="flex gap-1">
+                        <p className="text-gray-500">{station.distance}</p>
+                        <p className="text-gray-500">|</p>
+                        <p className="text-gray-500">
+                          {station.star} <span className="text-yellow-500">★</span>
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <p className="text-gray-500">No stations available for this service.</p>
+              )}
             </motion.div>
 
             {/* Time slot selection */}
-            {selectedStation !== null && (
-              <motion.div
-                className="mt-2 flex flex-col gap-1"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <h1 className="font-medium">Select a time slot</h1>
-                <div className="grid grid-cols-2 gap-2">
-                  {stations[selectedStation].timeSlots.map((slot, index) => (
-                    <button
-                      type="button"
-                      key={index}
-                      className={`bg-gray-100 flex items-center justify-center p-2 rounded-md border-2 transition-colors ${
-                        !slot.available
-                          ? 'border-red-600 ring-2 ring-red-200 opacity-50 cursor-not-allowed'
-                          : selectedTimeSlot === index
-                          ? 'border-green-600 ring-2 ring-green-200'
-                          : 'border-transparent'
-                      }`}
-                      disabled={!slot.available}
-                      onClick={() => {
-                        if (slot.available) {
-                          setSelectedTimeSlot(index);
-                        }
-                      }}
-                    >
-                      {slot.time}
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+            {selectedStation !== null &&
+              selectedService.stations[selectedStation]?.timeSlots.length > 0 && (
+                <motion.div
+                  className="mt-2 flex flex-col gap-1"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <h1 className="font-medium">Select a time slot</h1>
+                  <div className="grid grid-cols-2 gap-2">
+                    {selectedService.stations[selectedStation].timeSlots.map(
+                      (slot, index) => (
+                        <button
+                          type="button"
+                          key={index}
+                          className={`bg-gray-100 flex items-center justify-center p-2 rounded-md border-2 transition-colors ${
+                            !slot.available
+                              ? 'border-red-600 ring-2 ring-red-200 opacity-50 cursor-not-allowed'
+                              : selectedTimeSlot === index
+                              ? 'border-green-600 ring-2 ring-green-200'
+                              : 'border-transparent'
+                          }`}
+                          disabled={!slot.available}
+                          onClick={() => {
+                            if (slot.available) {
+                              setSelectedTimeSlot(index);
+                            }
+                          }}
+                        >
+                          {slot.time}
+                        </button>
+                      )
+                    )}
+                  </div>
+                </motion.div>
+              )}
           </>
         ) : null}
 
