@@ -1,0 +1,276 @@
+
+import { MapPin, Car, Wrench, AlertCircle, CheckCircle } from 'lucide-react';
+import React, { useState} from 'react';
+
+function App() {
+  // State variables for car type, repair service, and selected station
+
+  // Simulated data for car types and repair services
+  const [carType, setCarType] = useState('none');
+  const [repairService, setRepairService] = useState('none');
+
+  // Simulated data for nearby stations with respective time slots
+  const [nearbyStations] = useState([
+    { 
+      name: 'Autofix garage', 
+      distance: '2 miles', 
+      star: 4.5,
+      timeSlots: [
+        { time: '9:00 AM', available: true },
+        { time: '10:00 AM', available: true },
+        { time: '11:00 AM', available: false },
+        { time: '12:00 PM', available: true },
+      ]
+    },
+    { 
+      name: 'QuickRepair Center', 
+      distance: '5 miles', 
+      star: 4.0,
+      timeSlots: [
+        { time: '9:30 AM', available: true },
+        { time: '10:30 AM', available: false },
+        { time: '1:00 PM', available: true },
+        { time: '2:00 PM', available: true },
+      ]
+    },
+    { 
+      name: 'City Motors', 
+      distance: '10 miles', 
+      star: 4.2,
+      timeSlots: [
+        { time: '8:00 AM', available: true },
+        { time: '9:00 AM', available: false },
+        { time: '10:00 AM', available: true },
+        { time: '11:00 AM', available: true },
+      ]
+    },
+    { 
+      name: 'Urban Repairs', 
+      distance: '15 miles', 
+      star: 4.3,
+      timeSlots: [
+        { time: '12:00 PM', available: true },
+        { time: '1:00 PM', available: true },
+        { time: '3:00 PM', available: false },
+        { time: '4:00 PM', available: true },
+      ]
+    },
+    { 
+      name: 'Modern Auto', 
+      distance: '20 miles', 
+      star: 4.1,
+      timeSlots: [
+        { time: '8:30 AM', available: true },
+        { time: '9:30 AM', available: true },
+        { time: '10:30 AM', available: true },
+        { time: '11:30 AM', available: false },
+      ]
+    },
+  ]);
+
+  // State variables for error and success messages
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
+
+  // State variables for selected station and time slot and notes
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+  const [notes, setNotes] = useState('');
+
+  
+
+  const handleSubmit = () => {
+    // Clear previous messages
+    setError(null);
+    setSuccess(null);
+    
+    // validation
+    if (carType === 'none' || repairService === 'none' || selectedStation === null || selectedTimeSlot === null) {
+      setError('Please fill in all required fields');
+      return; 
+     
+      
+    }
+    
+   
+    
+    // All validations passed
+    setSuccess('Appointment booked successfully!');
+  };
+
+  return (
+    <div className="min-h-screen mx-2 sm:mx-6 md:mx-16 lg:mx-32 xl:mx-60 my-4">
+      <h1 className="font-bold text-2xl">Repair Booking</h1>
+      
+      {/* Status messages */}
+      {error && (
+      <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 my-4" role="alert">
+        <div className="flex items-center">
+        <AlertCircle className="mr-2" size={20} />
+        <p>{error}</p>
+        </div>
+      </div>
+      )}
+      
+      {/* Success message */}
+      {success && (
+      <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 my-4" role="alert">
+        <div className="flex items-center">
+        <CheckCircle className="mr-2" size={20} />
+        <p>{success}</p>
+        </div>
+      </div>
+      )}
+      
+      <div className="flex flex-col mt-4 gap-4">
+
+      {/* Car type selection */}
+      <div className="flex flex-col gap-1">
+        <h1 className="font-medium flex items-center gap-2">
+        <Car className="text-blue-600" size={20} />
+        Car type
+        </h1>
+        <label htmlFor="carType">Select a car type</label>
+        <select
+        className="bg-gray-100 p-2 rounded-md"
+        name="carType"
+        id="carType"
+        value={carType}
+        onChange={(e) => setCarType(e.target.value)}
+        >
+        <option value="none" disabled>Select a car type</option>
+        <option value="sedan">Sedan</option>
+        <option value="suv">SUV</option>
+        <option value="truck">Truck</option>
+        <option value="van">Van</option>
+        <option value="hatchback">Hatchback</option>
+        <option value="convertible">Convertible</option>
+        <option value="coupe">Coupe</option>
+        <option value="wagon">Wagon</option>
+        <option value="sports">Sports</option>
+        <option value="luxury">Luxury</option>
+        <option value="electric">Electric</option>
+        <option value="hybrid">Hybrid</option>
+        </select>
+      </div>
+
+      {/* Repair service selection */}
+      <div className="mt-2 flex flex-col gap-1">
+        <h1 className="font-medium flex items-center gap-2">
+        <Wrench className="text-blue-600" size={20} />
+        Repair service
+        </h1>
+        <label htmlFor="repairService">Select a repair service</label>
+        <select
+        className="bg-gray-100 p-2 rounded-md"
+        name="repairService"
+        id="repairService"
+        value={repairService}
+        onChange={(e) => setRepairService(e.target.value)}
+        >
+        <option value="none" disabled>Select a repair service</option>
+        <option value="oilChange">Oil Change</option>
+        <option value="tireRotation">Tire Rotation</option>
+        <option value="brakeInspection">Brake Inspection</option>
+        <option value="batteryReplacement">Battery Replacement</option>
+        <option value="engineTuneUp">Engine Tune-Up</option>
+        <option value="transmissionRepair">Transmission Repair</option>
+        <option value="suspensionRepair">Suspension Repair</option>
+        <option value="exhaustRepair">Exhaust Repair</option>
+        </select>
+      </div>
+
+        {/* Conditional Rendering to show the stations when the user picks a repair service*/}
+        
+        {
+        repairService !== 'none' && (
+        <>
+         {/* Nearby stations */}
+      <div className="mt-2 flex flex-col gap-1">
+        <h1 className="font-medium">Nearby stations</h1>
+        {nearbyStations.map((station, index) => (
+        <button
+          type="button"
+          key={index}
+          className={`bg-gray-100 flex gap-2 items-center p-2 rounded-md border-2 transition-colors ${
+          selectedStation === index
+            ? 'border-blue-600 ring-2 ring-blue-200'
+            : 'border-transparent'
+          }`}
+          onClick={() => setSelectedStation(index)}
+        >
+          <div className="w-10 h-10 bg-gray-300 rounded flex items-center justify-center">
+          <MapPin className="text-blue-600" />
+          </div>
+          <div className="flex flex-col text-left">
+          <h2 className="font-medium">{station.name}</h2>
+          <div className="flex gap-1">
+            <p className="text-gray-500">{station.distance}</p>
+            <p className="text-gray-500">|</p>
+            <p className="text-gray-500">
+            {station.star} <span className="text-yellow-500">★</span>
+            </p>
+          </div>
+          </div>
+        </button>
+        ))}
+      </div>
+
+      {/* Time slot selection */}
+      {selectedStation !== null && (
+        <div className="mt-2 flex flex-col gap-1">
+          <h1 className="font-medium">Select a time slot</h1>
+          <div className="grid grid-cols-2 gap-2">
+            {nearbyStations[selectedStation].timeSlots.map((slot, index) => (
+              <button
+                type="button"
+                key={index}
+                className={`bg-gray-100 flex items-center justify-center p-2 rounded-md border-2 transition-colors ${
+                  !slot.available
+                    ? 'border-red-600 ring-2 ring-red-200 opacity-50 cursor-not-allowed'
+                    : selectedTimeSlot === index
+                    ? 'border-green-600 ring-2 ring-green-200'
+                    : 'border-transparent'
+                }`}
+                disabled={!slot.available}
+                onClick={() => {
+                  if (slot.available) {
+                    setSelectedTimeSlot(index);
+                  }
+                }}
+              >
+                {slot.time}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      
+    </>
+    )}
+    <div className="mt-2 flex flex-col gap-1">
+        <h1 className="font-medium">Additional notes</h1>
+        <textarea
+        className="bg-gray-100 p-2 rounded-md"
+        rows="4"
+        placeholder="Enter any additional notes or requests here..."
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        ></textarea>
+      </div>
+
+      <button
+        onClick={handleSubmit}
+        className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition-colors mt-4"
+      >
+        Book Appointment
+      </button>
+    </div>
+  </div>
+      
+    );
+}
+
+export default App;
