@@ -98,6 +98,7 @@ yarn start
     <li style="margin: 5px 0;"><code style="background: #f4f4f4; padding: 2px 4px; border-radius: 3px;">src/main.jsx</code>: Entry point for the React application, rendering the <code style="background: #f4f4f4; padding: 2px 4px; border-radius: 3px;">App</code> component in strict mode.</li>
     <li style="margin: 5px 0;"><code style="background: #f4f4f4; padding: 2px 4px; border-radius: 3px;">src/App.jsx</code>: Main component containing the booking form logic and UI.</li>
     <li style="margin: 5px 0;"><code style="background: #f4f4f4; padding: 2px 4px; border-radius: 3px;">src/index.css</code>: Stylesheet with Tailwind CSS configurations.</li>
+      <li style="margin: 5px 0;"><code style="background: #f4f4f4; padding: 2px 4px; border-radius: 3px;">src/LoadingSpinner.jsx</code>: The Loading spinner component.</li>
     <li style="margin: 5px 0;"><code style="background: #f4f4f4; padding: 2px 4px; border-radius: 3px;">public/</code>: Static assets and the HTML template.</li>
   </ul>
 
