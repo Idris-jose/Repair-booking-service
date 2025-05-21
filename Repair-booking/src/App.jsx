@@ -1,11 +1,36 @@
 import { MapPin, Car, Wrench, AlertCircle, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { setupWorker } from 'msw/browser';
 import { handlers, repairServices } from './Handler.js';
 import toast, { Toaster } from 'react-hot-toast';
 
 export const worker = setupWorker(...handlers);
+
+// Simple loading spinner component
+function LoadingSpinner() {
+  return (
+    <div className="flex items-center justify-center py-8">
+      <svg className="animate-spin h-8 w-8 text-blue-600" viewBox="0 0 24 24">
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+          fill="none"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+        />
+      </svg>
+      <span className="ml-2 text-blue-600 font-medium">Loading...</span>
+    </div>
+  );
+}
 
 function App() {
   // State variables for car type, repair service, and selected station
@@ -19,10 +44,46 @@ function App() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
+  // Loading states
+  const [loadingStations, setLoadingStations] = useState(false);
+  const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
+
   // Find the selected service based on repairService ID
   const selectedService = repairServices.find(
     (service) => service.id === parseInt(repairService)
   );
+
+  // Effect for loading stations after selecting car type and repair service
+  useEffect(() => {
+    if (carType !== 'none' && repairService !== 'none') {
+      setLoadingStations(true);
+      setSelectedStation(null);
+      setSelectedTimeSlot(null);
+      // Simulate loading delay
+      const timer = setTimeout(() => {
+        setLoadingStations(false);
+      }, 4000);
+      return () => clearTimeout(timer);
+    } else {
+      setLoadingStations(false);
+    }
+    // eslint-disable-next-line
+  }, [carType, repairService]);
+
+  // Effect for loading time slots after selecting a station
+  useEffect(() => {
+    if (selectedStation !== null) {
+      setLoadingTimeSlots(true);
+      setSelectedTimeSlot(null);
+      const timer = setTimeout(() => {
+        setLoadingTimeSlots(false);
+      }, 4000);
+      return () => clearTimeout(timer);
+    } else {
+      setLoadingTimeSlots(false);
+    }
+    // eslint-disable-next-line
+  }, [selectedStation]);
 
   const handleSubmit = () => {
     // Clear previous messages
@@ -142,87 +203,95 @@ function App() {
         {/* Conditional Rendering to show the stations when the user picks a repair and car type */}
         {repairService !== 'none' && carType !== 'none' && selectedService ? (
           <>
-            {/* Nearby stations */}
-            <motion.div
-              className="mt-2 flex flex-col gap-1"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <h1 className="font-medium">Nearby stations</h1>
-              {selectedService.stations.length > 0 ? (
-                selectedService.stations.map((station, index) => (
-                  <button
-                    type="button"
-                    key={index}
-                    className={`bg-gray-100 flex gap-2 items-center p-2 rounded-md border-2 transition-colors ${
-                      selectedStation === index
-                        ? 'border-blue-600 ring-2 ring-blue-200'
-                        : 'border-transparent'
-                    }`}
-                    onClick={() => {
-                      setSelectedStation(index);
-                      setSelectedTimeSlot(null); // Reset time slot when station changes
-                    }}
-                  >
-                    <div className="w-10 h-10 bg-gray-300 rounded flex items-center justify-center">
-                      <MapPin className="text-blue-600" />
-                    </div>
-                    <div className="flex flex-col text-left">
-                      <h2 className="font-medium">{station.name}</h2>
-                      <div className="flex gap-1">
-                        <p className="text-gray-500">{station.distance}</p>
-                        <p className="text-gray-500">|</p>
-                        <p className="text-gray-500">
-                          {station.star} <span className="text-yellow-500">★</span>
-                        </p>
+            {/* Loading for stations */}
+            {loadingStations ? (
+              <LoadingSpinner />
+            ) : (
+              <motion.div
+                className="mt-2 flex flex-col gap-1"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h1 className="font-medium">Nearby stations</h1>
+                {selectedService.stations.length > 0 ? (
+                  selectedService.stations.map((station, index) => (
+                    <button
+                      type="button"
+                      key={index}
+                      className={`bg-gray-100 flex gap-2 items-center p-2 rounded-md border-2 transition-colors ${
+                        selectedStation === index
+                          ? 'border-blue-600 ring-2 ring-blue-200'
+                          : 'border-transparent'
+                      }`}
+                      onClick={() => {
+                        setSelectedStation(index);
+                        setSelectedTimeSlot(null); // Reset time slot when station changes
+                      }}
+                    >
+                      <div className="w-10 h-10 bg-gray-300 rounded flex items-center justify-center">
+                        <MapPin className="text-blue-600" />
                       </div>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <p className="text-gray-500">No stations available for this service.</p>
-              )}
-            </motion.div>
+                      <div className="flex flex-col text-left">
+                        <h2 className="font-medium">{station.name}</h2>
+                        <div className="flex gap-1">
+                          <p className="text-gray-500">{station.distance}</p>
+                          <p className="text-gray-500">|</p>
+                          <p className="text-gray-500">
+                            {station.star} <span className="text-yellow-500">★</span>
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No stations available for this service.</p>
+                )}
+              </motion.div>
+            )}
 
             {/* Time slot selection */}
             {selectedStation !== null &&
               selectedService.stations[selectedStation]?.timeSlots.length > 0 && (
-                <motion.div
-                  className="mt-2 flex flex-col gap-1"
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <h1 className="font-medium">Select a time slot</h1>
-                  <div className="grid grid-cols-2 gap-2">
-                    {selectedService.stations[selectedStation].timeSlots.map(
-                      (slot, index) => (
-                        <button
-                          type="button"
-                          key={index}
-                          className={`bg-gray-100 flex items-center justify-center p-2 rounded-md border-2 transition-colors ${
-                            !slot.available
-                              ? 'border-red-600 ring-2 ring-red-200 opacity-50 cursor-not-allowed'
-                              : selectedTimeSlot === index
-                              ? 'border-green-600 ring-2 ring-green-200'
-                              : 'border-transparent'
-                          }`}
-                          disabled={!slot.available}
-                          onClick={() => {
-                            if (slot.available) {
-                              setSelectedTimeSlot(index);
-                            }
-                          }}
-                        >
-                          {slot.time}
-                        </button>
-                      )
-                    )}
-                  </div>
-                </motion.div>
+                loadingTimeSlots ? (
+                  <LoadingSpinner />
+                ) : (
+                  <motion.div
+                    className="mt-2 flex flex-col gap-1"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <h1 className="font-medium">Select a time slot</h1>
+                    <div className="grid grid-cols-2 gap-2">
+                      {selectedService.stations[selectedStation].timeSlots.map(
+                        (slot, index) => (
+                          <button
+                            type="button"
+                            key={index}
+                            className={`bg-gray-100 flex items-center justify-center p-2 rounded-md border-2 transition-colors ${
+                              !slot.available
+                                ? 'border-red-600 ring-2 ring-red-200 opacity-50 cursor-not-allowed'
+                                : selectedTimeSlot === index
+                                ? 'border-green-600 ring-2 ring-green-200'
+                                : 'border-transparent'
+                            }`}
+                            disabled={!slot.available}
+                            onClick={() => {
+                              if (slot.available) {
+                                setSelectedTimeSlot(index);
+                              }
+                            }}
+                          >
+                            {slot.time}
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </motion.div>
+                )
               )}
           </>
         ) : null}
